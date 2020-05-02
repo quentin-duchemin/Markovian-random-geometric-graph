@@ -2,7 +2,7 @@
 
 # Nonparametric Estimation in Geometric Random Graph with Markovian dynamic on the latent variables.
 
-This repository is the official implementation of [Nonparametric Estimation in Geometric Random Graph withMarkovian dynamic on the latent variables.](). 
+This repository is the official implementation of [Nonparametric Estimation in Geometric Random Graph withMarkovian dynamic on the latent variables](). 
 
 > 📋Optional: include a graphic explaining your approach/main result, bibtex entry, link to demos, blog posts and tutorials
 

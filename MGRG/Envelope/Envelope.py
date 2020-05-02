@@ -73,3 +73,5 @@ class Envelope(EstimatorEnvelope):
             return self.prim3_heaviside(t)
         elif self.enveloppe == 'sinus':
             return self.sinus_enveloppe(t)
+        elif self.enveloppe == 'polynomial':
+            return (1/3 + (35*t**4-30*t**2+ 3) / 12)

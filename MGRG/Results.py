@@ -3,6 +3,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 import math
 import scipy.integrate as integrate
+from scipy.special import gegenbauer
 
 from .Parameters import Parameters
 
@@ -42,7 +43,6 @@ class Results(Parameters):
         return np.sqrt(best_error)
 
     def delta2_metric(self, esti_spec, true_spec):
-        print(len(esti_spec),len(true_spec))
         import itertools
         r = len(esti_spec)
         R = len(true_spec)
@@ -63,8 +63,12 @@ class Results(Parameters):
         esti_eigenvalues = self.compute_eigenvalues(mode='estimation_latitude')
         return self.delta2_metric(esti_eigenvalues, true_eigenvalues)
 
+    def error_gram_matrix(self):
+        return np.linalg.norm(self.gram-self.gram_true)
 
     def plot_comparison_eig_envelope(self):
+        eigenvalues = self.compute_eigenvalues()
+        size = min(len(eigenvalues),len(self.spectrumenv))
         plt.scatter(eigenvalues[:size],[0 for i in range(size)],label='True Envelope')
         plt.scatter(self.spectrumenv[:size],[1 for i in range(size)],label='Estimated Envelope')
         plt.title('Eigenvalues Envelope')

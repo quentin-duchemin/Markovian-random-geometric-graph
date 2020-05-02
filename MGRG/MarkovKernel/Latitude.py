@@ -36,8 +36,20 @@ class Latitude(EstimatorLatitude):
             h = 2/3
             u = np.random.uniform(0,1)
             return -3 + np.sqrt(9*h*h-h*(5*h-8*u))/h
+        elif self.latitude == 'mixture':
+            if np.random.uniform(0,1)<0.5:
+              return 1-np.random.beta(2,5)
+            else:
+              return -1+np.random.beta(2,5)
+        elif self.latitude == 'mixture':
+            if np.random.uniform(0,1)<0.5:
+              return 1-np.random.beta(2,5)
+            else:
+              return -1+np.random.beta(2,5)
         else:
             return np.cos(self.compute_arccos_latitude())
+
+
 
     def density_latitude(self, cosangle):
         if self.latitude == 'uniform':
@@ -51,3 +63,8 @@ class Latitude(EstimatorLatitude):
         elif self.latitude == 'linear':
           h = 2/3
           return (h/4)*(cosangle+1)+h/2
+        elif self.latitude == 'mixture':
+            if cosangle <=0:
+              return 0.5*stats.beta.pdf(1+cosangle,2,5)
+            else:
+              return 0.5*stats.beta.pdf(1-cosangle,2,5)
