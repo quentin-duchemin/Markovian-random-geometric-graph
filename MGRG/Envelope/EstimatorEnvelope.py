@@ -244,26 +244,28 @@ class EstimatorEnvelope(Parameters):
         plt.legend()
         plt.show()
 
-    def check_HAC_bis(self, Rmax, nbmax_eigs=100):
+
+    def check_HAC_bis(self, Rmax):
         eig, v = np.linalg.eig(self.A / self.n)
         eig = np.real(eig)
         self.compute_dimensions_sphere(R=Rmax)  
-        clusters = self.hierarchical_clustering(eig)
-        fig = plt.figure(figsize=(10,4))
+        idx = eig.argsort()[::-1]   
+        eig = eig[idx]
+        self.compute_dimensions_sphere(R=Rmax)  
+        maxindUSVT = min(sum(self.dimensions),self.n-1)
+        clusters = self.hierarchical_clustering(eig[:maxindUSVT])
+        fig = plt.figure()
         ax1 = fig.add_subplot(111)
-        ax1.scatter([i for i in range(nbmax_eigs)], eig[:nbmax_eigs],  c='blue', marker = 'o',label='True eigenvalues')
+        ax1.scatter([i for i in range(maxindUSVT)], eig[:maxindUSVT],  s=20, c='blue', marker = 'x',label='Eigenvalues adjacency matrix')
         indices = []
         means = []
         for i in range(len(clusters[1])):
           mean = np.mean(eig[clusters[1][i]])
           for ei in clusters[1][i]:
-            if ei<nbmax_eigs:
-              means.append(mean)
-              indices.append(ei)
-        ax1.scatter(indices, means, c='red', marker = '+', label='Clusters')
-        inds = list(filter(lambda x: x<nbmax_eigs,clusters[0]))
-        ls = list(np.real(eig[inds]))
-        ax1.scatter(inds, ls, c='black',marker='*', label='Eigenvalues set to 0')
+            means.append(mean)
+            indices.append(ei)
+        ax1.scatter(indices, means, s=20, c='red', marker = '+', label='Clusters built by SCCHEi')
+        ax1.set_xlabel('Indexes eigenvalues envelope')
         plt.legend()
         plt.show()
 
