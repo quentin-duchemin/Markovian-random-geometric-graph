@@ -217,12 +217,13 @@ class EstimatorEnvelope(Parameters):
         return self.function_gegenbauer(t, self.spectrumenv)
     
     # Test
-    def plot_estimation_enveloppe(self):
+    def plot_estimation_enveloppe(self,True_envelope=True):
         x = np.linspace(-1,1,100)
         self.esti = [self.estimation_enveloppe(xi) for xi in x]
-        self.true = [self.compute_enveloppe(xi) for xi in x]
         plt.plot(x, self.esti, label='Estimation')
-        plt.plot(x, self.true, label='True enveloppe')
+        if True_envelope:
+          self.true = [self.compute_enveloppe(xi) for xi in x]
+          plt.plot(x, self.true, label='True enveloppe')
         plt.legend()
         plt.show()
 

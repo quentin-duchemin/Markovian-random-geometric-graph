@@ -8,11 +8,14 @@ from .Results import Results
 
 class Graph(Sampling, Envelope, Results):
     """ Main class building the graph """
-    def __init__(self, nb_nodes, dimension, sampling_type, latitude = 'default', enveloppe = 'default'):
+    def __init__(self, nb_nodes, dimension, sampling_type = 'iid', latitude = 'default', enveloppe = 'default', adjacency_matrix = None):
         Sampling.__init__(self, nb_nodes, dimension, sampling_type, latitude = latitude)
         Envelope.__init__(self, nb_nodes, dimension, sampling_type, enveloppe = enveloppe)
         Results.__init__(self, nb_nodes, dimension, sampling_type)
-        self.adjacency()
+        if adjacency_matrix is None:
+            self.adjacency()
+        else:
+            self.A = adjacency_matrix
         self.latent_distance_estimation()
 
     def adjacency(self):

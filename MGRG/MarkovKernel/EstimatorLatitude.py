@@ -43,8 +43,11 @@ class EstimatorLatitude(Parameters, Kernels):
         V = vec[:,dec_order[best_ind_eig:best_ind_eig+self.d+1]]
         self.gram = np.real((1/self.d) * np.dot(V,V.T))
         self.updiag_gram = self.n*np.array([self.gram[i,i+1] for i in range(self.gram.shape[0]-1)])
-        self.gram_true = np.array([[np.dot(self.V[:,i],self.V[:,j]) for i in range(self.n)] for j in range(self.n)])
-        self.updiag_gram_true = np.array([self.gram_true[i,i+1] for i in range(self.gram_true.shape[0]-1)])
+        try:
+            self.gram_true = np.array([[np.dot(self.V[:,i],self.V[:,j]) for i in range(self.n)] for j in range(self.n)])
+            self.updiag_gram_true = np.array([self.gram_true[i,i+1] for i in range(self.gram_true.shape[0]-1)])
+        except:
+            pass
 
     def latitude_estimator(self, x):
         h = (1/self.n)**(1/3)
