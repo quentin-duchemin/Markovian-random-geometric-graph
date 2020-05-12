@@ -4,6 +4,7 @@ import matplotlib.pyplot as plt
 import math
 import scipy.integrate as integrate
 from scipy.special import gegenbauer
+import itertools
 
 from .Parameters import Parameters
 
@@ -13,6 +14,8 @@ class Results(Parameters):
         Parameters.__init__(self, nb_nodes, dimension, sampling_type)
   
     def compute_eigenvalues(self, mode='enveloppe'):
+        """ Compute the eigenvalues of the integral operator associated with a real valud function of the pairwise distances
+        between latent positions """
         self.compute_dimensions_sphere(R=40)
         eigenvalues = []
         beta = (self.d-2)/2
@@ -30,7 +33,7 @@ class Results(Parameters):
         return eigenvalues
 
     def exact_delta2_metric(self, esti_spec, true_spec):
-        import itertools
+        """ Computes the exact delta2 distance between spectra. The best permutation is searched. """
         R = len(esti_spec)
         permus = list(itertools.permutations([i for i in range(R)]))
         best_error = np.float('inf')
@@ -43,7 +46,8 @@ class Results(Parameters):
         return np.sqrt(best_error)
 
     def delta2_metric(self, esti_spec, true_spec):
-        import itertools
+        """ Direct delta2 metric between spectra considering that they have already been sorted 
+        with increasing spherical harmonic dimension """
         r = len(esti_spec)
         R = len(true_spec)
         for i in range(r,R):
@@ -54,19 +58,23 @@ class Results(Parameters):
         return error
 
     def error_estimation_enveloppe(self):
+        """ Delta2 error between the true and the estimated envelope """
         eigenvalues = self.compute_eigenvalues()
         size = min(len(eigenvalues),len(self.spectrumenv))
         return self.delta2_metric(self.spectrumenv[:size],eigenvalues)
 
     def error_estimation_latitude(self):
+        """ Delta2 error between the true and the estimated latitude """
         true_eigenvalues = self.compute_eigenvalues(mode='latitude')
         esti_eigenvalues = self.compute_eigenvalues(mode='estimation_latitude')
         return self.delta2_metric(esti_eigenvalues, true_eigenvalues)
 
     def error_gram_matrix(self):
+        """ Frobenius error between the true and the estimated gram matrix """
         return np.linalg.norm(self.gram-self.gram_true)
 
     def plot_comparison_eig_envelope(self):
+        """ Plot the true and the estimated spectra of the envelope function """
         eigenvalues = self.compute_eigenvalues()
         size = min(len(eigenvalues),len(self.spectrumenv))
         plt.scatter(eigenvalues[:size],[0 for i in range(size)],label='True Envelope')

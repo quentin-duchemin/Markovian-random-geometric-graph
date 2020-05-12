@@ -9,6 +9,7 @@ class Envelope(EstimatorEnvelope):
         self.enveloppe = enveloppe
 
     def function_gegenbauer(self, t, spectrum):
+        """ Returns the value at t of the function with a decomposition 'spectrum' in the gegenbauer basis """
         res = 0
         for i in range(len(spectrum)):
             coeffi = (2*i+self.d-2)/(self.d-2)

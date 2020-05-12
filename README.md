@@ -1,8 +1,10 @@
-> 📋Markovian Geometric Random Graph
+> 📋Markovian Random Geometric Graph
 
-# Nonparametric Estimation in Geometric Random Graph with Markovian dynamic on the latent variables.
+# Markov Random Geometric Graph (MRGG):
 
-This repository is the official implementation of [Nonparametric Estimation in Geometric Random Graph withMarkovian dynamic on the latent variables](). 
+A Growth Model for Temporal Dynamic Networks
+
+This repository is the official implementation of [Markov Random Geometric Graph (MRGG): A Growth Model for Temporal Dynamic Networks](). 
 
 ## Requirements
 
@@ -12,41 +14,42 @@ To install requirements:
 pip install -r requirements.txt
 ```
 
-> 📋Describe how to set up the environment, e.g. pip/conda/docker commands, download datasets, etc...
 
-## Training
-
-To train the model(s) in the paper, run this command:
+## How to build a graph from simulated data
 
 ```train
-python train.py --input-data <path_to_data> --alpha 10 --beta 20
+G = Graph(n, d, sampling_type = 'markov', enveloppe = 'heaviside', latitude = 'mixture')
 ```
 
-> 📋Describe how to train the models, with example commands on how to train the models in your paper, including the full training procedure and appropriate hyperparameters.
+> 📋The previous command allows you to create a graph of size n with a Markovian dynamic on the latent points on the Sphere of dimension d. The envelope function used in that case if the Heaviside and the latitude function is a mixture of beta distribution. You can define your own envelope and latitude functions by modyfying the files `Latitude.py` and `Envelope.py`.
 
-## Evaluation
 
-To evaluate my model on ImageNet, run:
 
-```eval
-python eval.py --model-file mymodel.pth --benchmark imagenet
+## How to build a graph from real data
+
+```train
+G = Graph(n, d, adjacency_matrix = A, sparsity = sparsity)
 ```
 
-> 📋Describe how to evaluate the trained models on benchmarks reported in the paper, give commands that produce the results (section below).
-
-## Results
-
-Our model achieves the following performance on :
-
-### [Image Classification on ImageNet](https://paperswithcode.com/sota/image-classification-on-imagenet)
-
-| Model name         | Top 1 Accuracy  | Top 5 Accuracy |
-| ------------------ |---------------- | -------------- |
-| My awesome model   |     85%         |      95%       |
-
-> 📋Include a table of results from your paper, and link back to the leaderboard for clarity and context. If your main result is a figure, include that figure and link to the command or notebook to reproduce it. 
+> 📋The previous command allows you to define a Graph instance with your own adjacency matrix. The `sparsity` parameter should define the average degree of a node of the graph divided by the size of the graph.
 
 
-## Contributing
 
-> 📋Pick a licence and describe how to contribute to your code repository. 
+## Launch the algorithm SCCHEi
+
+The following command launches the algorithm SCCHEi with a search of the best resolution level R. 
+
+```train
+G.SCCHEi_with_R_search()
+```
+
+
+## Visualize results
+
+Visualize the true and the estimated envelope function (resp. latitude function). 
+
+```train
+G.plot_estimation_enveloppe()
+G.plot_densities_latitude()
+```
+
