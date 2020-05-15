@@ -40,9 +40,11 @@ class EstimatorLatitude(Parameters, Kernels):
             if next_gap > gap:
               next_gap = gap
               best_ind_eig = i
-        V = vec[:,dec_order[best_ind_eig:best_ind_eig+self.d+1]]
-        self.gram = np.real((1/self.d) * np.dot(V,V.T))
-        self.updiag_gram = self.n*np.array([self.gram[i,i+1] for i in range(self.gram.shape[0]-1)])
+        self.best_ind_eig = best_ind_eig
+        V = vec[:,dec_order[best_ind_eig:best_ind_eig+self.d]]
+        # self.gram = np.real((1/self.d) * np.dot(V,V.T))
+        # self.updiag_gram = self.n*np.array([self.gram[i,i+1] for i in range(self.gram.shape[0]-1)])
+        self.updiag_gram = (self.n /self.d) * np.array([np.dot(V[i,:],V[i+1,:]) for i in range(V.shape[0]-1)])
 
         try:
             self.gram_true = np.array([[np.dot(self.V[:,i],self.V[:,j]) for i in range(self.n)] for j in range(self.n)])
@@ -72,6 +74,6 @@ class EstimatorLatitude(Parameters, Kernels):
         esti = list(map(self.latitude_estimator, x))
         true = np.array(list(map(self.density_latitude, x)))
         plt.plot(x, esti/sum(esti), label='Estimation')
-        plt.plot(x, true/sum(true), label='True latitudes')
-        plt.legend()
+        plt.plot(x, true/sum(true), label='True latitudes',linestyle='--')
+        plt.legend(fontsize=13)
         plt.title('Latitude Density Estimation')

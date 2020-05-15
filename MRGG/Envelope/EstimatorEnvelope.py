@@ -16,8 +16,8 @@ class EstimatorEnvelope(Parameters):
         sum_dim = 0
         lim_sum = np.float('inf')
         if R is None:
-          lim_sum = self.n
-          R = self.n
+          lim_sum = len(self.dec_eigs)
+          R = len(self.dec_eigs)
         while (sum_dim < lim_sum and l<R+1):
           if l==0:
             self.dimensions.append(1)
@@ -186,14 +186,17 @@ class EstimatorEnvelope(Parameters):
         MSE += np.sum((self.dec_eigs[sum(self.dimensions):])**2)
         return MSE, spectrumenv
 
-    def SCCHEi_with_R_search(self, figure=False):
+    def SCCHEi_with_R_search(self, listeR=None, figure=False):
         """ Searches for the resolution level R that minizes the thresholded intra class variance
         for the clustering returns by the SCCHEi algorithm """
         self.compute_dimensions_sphere()
         L = len(self.dimensions)
         bestMSE = np.float('inf')
         bestR = 0
-        listeR = np.linspace(0,L,6)[1:]
+        if listeR is None:
+          listeR = [i for i in range(1,L)]
+        else:
+          listeR = listeR[np.where(listeR<=L)]
         listeMSE = []
         for R in listeR:
           MSE, spectrumenv = self.SCCHEi(R)
@@ -225,11 +228,13 @@ class EstimatorEnvelope(Parameters):
         """ Plots the true and the estimated envelope functions """
         x = np.linspace(-1,1,100)
         self.esti = [self.estimation_enveloppe(xi) for xi in x]
+        self.esti = list(map(lambda x:max(0,x),self.esti))
+        self.esti = list(map(lambda x:min(1,x),self.esti))
         plt.plot(x, self.esti, label='Estimation')
         if True_envelope:
           self.true = [self.compute_enveloppe(xi) for xi in x]
-          plt.plot(x, self.true, label='True enveloppe')
-        plt.legend()
+          plt.plot(x, self.true, label='True enveloppe', linestyle='--')
+        plt.legend(fontsize=13)
         plt.show()
 
     def check_HAC(self, Rmax):
@@ -255,13 +260,11 @@ class EstimatorEnvelope(Parameters):
         clusters = self.hierarchical_clustering(self.dec_eigs[:maxindUSVT])
         fig = plt.figure()
         dim2mean = {}
-        means = []
+        means = np.zeros(sum([len(clusters[1][i]) for i in range(len(clusters[1]))]))
         for i in range(len(clusters[1])):
           mean = np.mean(self.dec_eigs[clusters[1][i]])
-          dim2mean[len(clusters[1][i])] = mean
-        for dim in sorted(dim2mean.keys()):
-          for _ in range(dim):  
-            means.append(dim2mean[dim])
+          for k in clusters[1][i]:
+            means[k] = mean
         ax1 = fig.add_subplot(111)
         ax1.scatter([i for i in range(len(means))], self.dec_eigs[:len(means)],  s=20, c='blue', marker = 'x',label='Eigenvalues adjacency matrix')
         ax1.scatter([i for i in range(len(means))], means, s=20, c='red', marker = '+', label='Clusters built by SCCHEi')

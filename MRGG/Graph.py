@@ -9,7 +9,7 @@ from .Results import Results
 
 class Graph(Sampling, Envelope, Results):
     """ Main class building the graph """
-    def __init__(self, nb_nodes, dimension, sampling_type = 'iid', latitude = 'default', enveloppe = 'default', sparsity = 1, adjacency_matrix = None, nbeigvals = None):
+    def __init__(self, nb_nodes, dimension, sampling_type = 'uniform', latitude = 'default', enveloppe = 'default', sparsity = 1, adjacency_matrix = None, nbeigvals = None):
         Sampling.__init__(self, nb_nodes, dimension, sampling_type, latitude = latitude)
         Envelope.__init__(self, nb_nodes, dimension, sampling_type, enveloppe = enveloppe)
         Results.__init__(self, nb_nodes, dimension, sampling_type)
@@ -18,15 +18,15 @@ class Graph(Sampling, Envelope, Results):
             self.adjacency()
         else:
             self.A = adjacency_matrix
-            self.latent_distance_estimation()
+
         if nbeigvals is None:
             eig, vec = np.linalg.eig(self.A / (self.n * self.sparsity))
         else:
-            eig, vec = sc.linalg.eigh(self.A / (self.n * self.sparsity), eigvals=(eigvals,self.n-1))
+            eig, vec = sc.sparse.linalg.eigsh(self.A / (self.n * self.sparsity), k=nbeigvals)
 
         self.latent_distance_estimation(eig, vec)
         eig = np.real(eig)
-        dec_order = np.argsort(np.abs(eig))[::-1]
+        dec_order = np.argsort((eig))[::-1]
         dec_eigs = eig[dec_order]
         self.dec_eigs = dec_eigs 
     
