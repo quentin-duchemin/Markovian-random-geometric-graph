@@ -11,10 +11,14 @@ class Envelope(EstimatorEnvelope):
     def function_gegenbauer(self, t, spectrum):
         """ Returns the value at t of the function with a decomposition 'spectrum' in the gegenbauer basis """
         res = 0
-        for i in range(len(spectrum)):
-            coeffi = (2*i+self.d-2)/(self.d-2)
-            Gegen = gegenbauer(i, (self.d-2)/2)
-            res += spectrum[i] * coeffi * Gegen(t)
+        if self.d>2:
+            for i in range(len(spectrum)):
+                coeffi = (2*i+self.d-2)/(self.d-2)
+                Gegen = gegenbauer(i, (self.d-2)/2)
+                res += spectrum[i] * coeffi * Gegen(t)
+        elif self.d==2:
+            for i in range(len(spectrum)):
+                res += spectrum[i] * np.cos(i*np.arccos(t))
         return res  
 
     def default_enveloppe(self, t):

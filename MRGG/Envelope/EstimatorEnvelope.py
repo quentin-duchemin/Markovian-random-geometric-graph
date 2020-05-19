@@ -29,7 +29,8 @@ class EstimatorEnvelope(Parameters):
             if sum_dim  < lim_sum:
               self.dimensions.append( int(next_d) )
           l += 1
-
+        if sum(self.dimensions)>=len(self.dec_eigs):
+          self.dimensions = self.dimensions[:len(self.dimensions)-1]
 
     def tree_HAC(self, eigens, indices):
         """ Saves the tree built with a Hierarchical Clustering of the eiganvalues in "eigens" """
@@ -104,7 +105,7 @@ class EstimatorEnvelope(Parameters):
           R = 0
           while cumsum[R+1]<self.n:
             R += 1
-          self.dimensions = self.dimensions[:R+1]
+          self.dimensions = self.dimensions[:R]
         tree, treesizes, saveeig2name = self.tree_HAC(eigens,[i for i in range(len(eigens))])
         
         dims = self.dimensions
@@ -159,7 +160,7 @@ class EstimatorEnvelope(Parameters):
                 dims = [d]+missing_dims
                 missing_dims = []
                 nsamples = len(remaining_eigs_indices)            
-
+        
         for ls in tree[0].values():
           final_clusters[0].append(ls[0])
 
@@ -167,7 +168,7 @@ class EstimatorEnvelope(Parameters):
 
     def split(self, clust, d):
         clust = np.array(clust)
-        order = (np.argsort(clust)[::-1])
+        order = (np.argsort(np.abs(self.dec_eigs[clust]))[::-1])
         return list(clust[order[:d]]), list(clust[order[d:]])
 
     def SCCHEi(self, R):
@@ -256,7 +257,7 @@ class EstimatorEnvelope(Parameters):
     def plot_adjacency_eigs_vs_SCCHEi_clusters(self, Rmax):
         """ Represents the eiganvalues of the adjacency matrix and the estimated eiganvalues of the envelope function with multiplicity """
         self.compute_dimensions_sphere(R=Rmax)  
-        maxindUSVT = min(sum(self.dimensions),self.n-1)
+        maxindUSVT = min(sum(self.dimensions),self.n)
         clusters = self.hierarchical_clustering(self.dec_eigs[:maxindUSVT])
         fig = plt.figure()
         dim2mean = {}
