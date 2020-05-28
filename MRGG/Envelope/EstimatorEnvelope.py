@@ -5,7 +5,7 @@ import matplotlib.pyplot as plt
 from ..Parameters import Parameters
 
 class EstimatorEnvelope(Parameters):
-    """ Class estimating the enveloppe function using the strategy described in  arXiv:1708.02107 """
+    """ Class estimating the envelope function using the strategy described in  arXiv:1708.02107 """
     def __init__(self, nb_nodes, dimension, sampling_type):
         Parameters.__init__(self, nb_nodes, dimension, sampling_type)
 
@@ -29,8 +29,7 @@ class EstimatorEnvelope(Parameters):
             if sum_dim  < lim_sum:
               self.dimensions.append( int(next_d) )
           l += 1
-        if sum(self.dimensions)>=len(self.dec_eigs):
-          self.dimensions = self.dimensions[:len(self.dimensions)-1]
+
 
     def tree_HAC(self, eigens, indices):
         """ Saves the tree built with a Hierarchical Clustering of the eiganvalues in "eigens" """
@@ -105,7 +104,7 @@ class EstimatorEnvelope(Parameters):
           R = 0
           while cumsum[R+1]<self.n:
             R += 1
-          self.dimensions = self.dimensions[:R]
+          self.dimensions = self.dimensions[:R+1]
         tree, treesizes, saveeig2name = self.tree_HAC(eigens,[i for i in range(len(eigens))])
         
         dims = self.dimensions
@@ -160,7 +159,7 @@ class EstimatorEnvelope(Parameters):
                 dims = [d]+missing_dims
                 missing_dims = []
                 nsamples = len(remaining_eigs_indices)            
-        
+
         for ls in tree[0].values():
           final_clusters[0].append(ls[0])
 
@@ -168,7 +167,7 @@ class EstimatorEnvelope(Parameters):
 
     def split(self, clust, d):
         clust = np.array(clust)
-        order = (np.argsort(np.abs(self.dec_eigs[clust]))[::-1])
+        order = (np.argsort(clust)[::-1])
         return list(clust[order[:d]]), list(clust[order[d:]])
 
     def SCCHEi(self, R):
@@ -177,42 +176,63 @@ class EstimatorEnvelope(Parameters):
         clustering = self.hierarchical_clustering(self.dec_eigs[:sum(self.dimensions)])
         size2clust = {len(clust):clust for clust in clustering[1]}
         spectrumenv = [ np.real(np.mean(self.dec_eigs[size2clust[int(d)]])) for d in self.dimensions ]
-        MSE = 0
+        intraclass_var = 0
         for i,clust in size2clust.items():
           if i<=R:
-            MSE += np.sum((self.dec_eigs[clust]-np.mean(self.dec_eigs[clust]))**2)
+            intraclass_var += np.sum((self.dec_eigs[clust]-np.mean(self.dec_eigs[clust]))**2)
           else:
-            MSE += np.sum((self.dec_eigs[clust])**2)
-        MSE += np.sum((self.dec_eigs[clustering[0]])**2)
-        MSE += np.sum((self.dec_eigs[sum(self.dimensions):])**2)
-        return MSE, spectrumenv
+            intraclass_var+= np.sum((self.dec_eigs[clust])**2)
+        intraclass_var += np.sum((self.dec_eigs[clustering[0]])**2)
+        intraclass_var += np.sum((self.dec_eigs[sum(self.dimensions):])**2)
+        intraclass_var /=  len(self.dec_eigs)
+        return intraclass_var, spectrumenv
 
-    def SCCHEi_with_R_search(self, listeR=None, figure=False):
+    def SCCHEi_with_R_search(self, listeR=None, listekappa=None, figure=False):
         """ Searches for the resolution level R that minizes the thresholded intra class variance
         for the clustering returns by the SCCHEi algorithm """
         self.compute_dimensions_sphere()
         L = len(self.dimensions)
-        bestMSE = np.float('inf')
-        bestR = 0
         if listeR is None:
-          listeR = [i for i in range(1,L)]
-        else:
-          listeR = listeR[np.where(listeR<=L)]
-        listeMSE = []
+            listeR = [i for i in range(1,L)]
+        if listekappa is None:
+            listekappa = np.logspace(-4,0,1000)
+        listeI = []
+        listeSpectra = []
         for R in listeR:
-          MSE, spectrumenv = self.SCCHEi(R)
-          listeMSE.append(MSE)
-          if MSE < bestMSE:
-            bestMSE = MSE
-            bestR = R
-            self.spectrumenv = spectrumenv
+            I, spectrumenv = self.SCCHEi(R)
+            listeI.append(I)
+            listeSpectra.append(spectrumenv)
+
+        listeI = np.array(listeI)
+        M = np.tile(listekappa.reshape(1,-1),(len(listeR),1))
+        M /= self.n
+        dims = np.array(self.dimensions)[listeR]
+        M *= np.tile(dims.reshape(-1,1),(1,len(listekappa)))
+        M += np.tile(listeI.reshape(-1,1),(1,len(listekappa)))
+        R_kappa = np.argmin(M, axis=0)
+        D_kappa = dims[R_kappa]
+        gap = -np.float('inf')
+        kappa0 = 0
+        for i in range(len(listekappa)-1):
+            newgap = D_kappa[i] - D_kappa[i+1]
+            if newgap > gap:
+                gap = newgap
+                kappa0 = listekappa[i]
+
+        crit = np.float('inf')
+        for i,R in enumerate(listeR):
+            nextcrit = listeI[i] + 2*kappa0*dims[i]/self.n
+            if crit > nextcrit:
+                self.spectrumenv = listeSpectra[i]
+                crit = nextcrit
         if figure:
-          plt.scatter(listeR, listeMSE)
+          plt.plot(np.log10(listekappa), D_kappa)
+          plt.xlabel('$\log_{10}$ $\kappa$', fontsize=16)
+          plt.ylabel('tilde{$R$}$(\kappa)$', fontsize=16)
         
-    def estimation_enveloppe(self, t):
+    def estimation_envelope(self, t):
         """ Returns the estimated envelope evaluated at t """
         return self.function_gegenbauer(t, self.spectrumenv)
-
 
     def SCCHEi_Rmax(self):
         """ Performs the SCCHEi algorithm with the largest resolution possible given the size of the graph """
@@ -224,19 +244,36 @@ class EstimatorEnvelope(Parameters):
         size2clust = {len(clust):clust for clust in clustering[1]}
         self.spectrumenv = [ np.real(np.mean(self.dec_eigs[size2clust[int(d)]])) for d in self.dimensions ]
 
-    
-    def plot_estimation_enveloppe(self,True_envelope=True):
+    def plot_estimation_envelope(self,True_envelope=True, savename=None):
         """ Plots the true and the estimated envelope functions """
         x = np.linspace(-1,1,100)
-        self.esti = [self.estimation_enveloppe(xi) for xi in x]
+        self.esti = [self.estimation_envelope(xi) for xi in x]
         self.esti = list(map(lambda x:max(0,x),self.esti))
         self.esti = list(map(lambda x:min(1,x),self.esti))
-        plt.plot(x, self.esti, label='Estimation')
+        plt.plot(x, self.esti, label='Estimated envelope')
         if True_envelope:
-          self.true = [self.compute_enveloppe(xi) for xi in x]
-          plt.plot(x, self.true, label='True enveloppe', linestyle='--')
+          self.true = [self.compute_envelope(xi) for xi in x]
+          plt.plot(x, self.true, label='True envelope', linestyle='--')
         plt.legend(fontsize=13)
+        if not(savename is None):
+            plt.savefig(savename)
         plt.show()
+
+
+    def plot_estimation_envelope_real_data(self, savename=None):
+        x = np.linspace(-1,1,100)
+        self.esti = [self.estimation_envelope(xi) for xi in x]
+        self.esti = [self.estimation_envelope(xi)  for xi in x]
+        self.esti[1] = self.esti[0]
+        M = np.max(self.esti)
+        self.esti /= M
+        self.esti = list(map(lambda x:max(0,x), self.esti))
+        plt.plot(x, self.esti, label='Estimated envelope')
+        if not(savename is None):
+            plt.savefig(savename)
+        plt.show()
+
+
 
     def check_HAC(self, Rmax):
         self.compute_dimensions_sphere()  
@@ -257,7 +294,7 @@ class EstimatorEnvelope(Parameters):
     def plot_adjacency_eigs_vs_SCCHEi_clusters(self, Rmax):
         """ Represents the eiganvalues of the adjacency matrix and the estimated eiganvalues of the envelope function with multiplicity """
         self.compute_dimensions_sphere(R=Rmax)  
-        maxindUSVT = min(sum(self.dimensions),self.n)
+        maxindUSVT = min(sum(self.dimensions),self.n-1)
         clusters = self.hierarchical_clustering(self.dec_eigs[:maxindUSVT])
         fig = plt.figure()
         dim2mean = {}

@@ -9,9 +9,9 @@ from .Results import Results
 
 class Graph(Sampling, Envelope, Results):
     """ Main class building the graph """
-    def __init__(self, nb_nodes, dimension, sampling_type = 'uniform', latitude = 'default', enveloppe = 'default', sparsity = 1, adjacency_matrix = None, nbeigvals = None):
+    def __init__(self, nb_nodes, dimension, sampling_type = 'uniform', latitude = 'default', envelope = 'heaviside', sparsity = 1, adjacency_matrix = None, nbeigvals = None):
         Sampling.__init__(self, nb_nodes, dimension, sampling_type, latitude = latitude)
-        Envelope.__init__(self, nb_nodes, dimension, sampling_type, enveloppe = enveloppe)
+        Envelope.__init__(self, nb_nodes, dimension, sampling_type, envelope = envelope)
         Results.__init__(self, nb_nodes, dimension, sampling_type)
         self.sparsity = sparsity
         if adjacency_matrix is None:
@@ -26,7 +26,7 @@ class Graph(Sampling, Envelope, Results):
 
         self.latent_distance_estimation(eig, vec)
         eig = np.real(eig)
-        dec_order = np.argsort((eig))[::-1]
+        dec_order = np.argsort(np.abs(eig))[::-1]
         dec_eigs = eig[dec_order]
         self.dec_eigs = dec_eigs 
     
@@ -36,7 +36,7 @@ class Graph(Sampling, Envelope, Results):
         for i in range(1,self.n):
             V[:,i] = self.sample(V[:,i-1])
         self.V = V
-        self.Theta = np.array(list(map(lambda x: self.compute_enveloppe(x),np.dot(V.T,V).reshape(-1))))
+        self.Theta = np.array(list(map(lambda x: self.compute_envelope(x),np.dot(V.T,V).reshape(-1))))
         self.Theta = self.sparsity * self.Theta.reshape(self.n,self.n)
         for i in range(self.n):
             self.Theta[i,i] = 0

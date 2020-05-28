@@ -4,7 +4,6 @@
 
 A Growth Model for Temporal Dynamic Networks
 
-This repository is the official implementation of [Markov Random Geometric Graph (MRGG): A Growth Model for Temporal Dynamic Networks](). 
 
 ## Requirements
 
@@ -18,7 +17,7 @@ pip install -r requirements.txt
 ## How to build a graph from simulated data
 
 ```train
-G = Graph(n, d, sampling_type = 'markov', enveloppe = 'heaviside', latitude = 'mixture')
+G = Graph(n, d, sampling_type = 'markov', envelope = 'heaviside', latitude = 'mixture')
 ```
 
 > 📋The previous command allows you to create a graph of size n with a Markovian dynamic on the latent points on the Sphere of dimension d. The envelope function used in that case if the Heaviside and the latitude function is a mixture of beta distribution. You can define your own envelope and latitude functions by modyfying the files `Latitude.py` and `Envelope.py`.
@@ -49,7 +48,7 @@ G.SCCHEi_with_R_search()
 Visualize the true and the estimated envelope function (resp. latitude function). 
 
 ```train
-G.plot_estimation_enveloppe()
+G.plot_estimation_envelope()
 G.plot_densities_latitude()
 ```
 

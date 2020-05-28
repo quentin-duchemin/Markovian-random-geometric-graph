@@ -9,11 +9,11 @@ import itertools
 from .Parameters import Parameters
 
 class Results(Parameters):
-    """ Class estimating the enveloppe function using the strategy described in  arXiv:1708.02107 """
+    """ Class estimating the envelope function using the strategy described in  arXiv:1708.02107 """
     def __init__(self, nb_nodes, dimension, sampling_type):
         Parameters.__init__(self, nb_nodes, dimension, sampling_type)
   
-    def compute_eigenvalues(self, mode='enveloppe'):
+    def compute_eigenvalues(self, mode='envelope'):
         """ Compute the eigenvalues of the integral operator associated with a real valud function of the pairwise distances
         between latent positions """
         self.compute_dimensions_sphere(R=40)
@@ -22,8 +22,8 @@ class Results(Parameters):
         bd = math.gamma(self.d/2) / (math.gamma(1/2) * math.gamma(self.d/2 - 1/2))
         for l in range(min(40,len(self.dimensions))):
           Gegen = gegenbauer(l, beta)
-          if mode == 'enveloppe':
-            integral = integrate.quad(lambda x:  self.compute_enveloppe(x)*Gegen(x)*(1-x**2)**(beta-1/2), -1, 1)
+          if mode == 'envelope':
+            integral = integrate.quad(lambda x:  self.compute_envelope(x)*Gegen(x)*(1-x**2)**(beta-1/2), -1, 1)
           elif mode == 'latitude':
             integral = integrate.quad(lambda x:  self.density_latitude(x)*Gegen(x)*(1-x**2)**(beta-1/2), -1, 1)
           else:
@@ -57,7 +57,7 @@ class Results(Parameters):
           error += self.dimensions[i]*(esti_spec[i]-true_spec[i])**2
         return error
 
-    def error_estimation_enveloppe(self):
+    def error_estimation_envelope(self):
         """ Delta2 error between the true and the estimated envelope """
         eigenvalues = self.compute_eigenvalues()
         size = min(len(eigenvalues),len(self.spectrumenv))

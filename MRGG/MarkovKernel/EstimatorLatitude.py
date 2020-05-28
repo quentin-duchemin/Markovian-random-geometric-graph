@@ -68,7 +68,7 @@ class EstimatorLatitude(Parameters, Kernels):
         sc = plt.imshow(img)
         plt.colorbar(sc)
 
-    def plot_densities_latitude(self):
+    def plot_densities_latitude(self, savename=None):
         """ Plot the true and the estimated density of the cosinus of the angle between two consecutive states of the Markov chain on the Sphere """
         x = np.linspace(-0.9,0.9,100)
         esti = list(map(self.latitude_estimator, x))
@@ -77,3 +77,25 @@ class EstimatorLatitude(Parameters, Kernels):
         plt.plot(x, true/sum(true), label='True latitudes',linestyle='--')
         plt.legend(fontsize=13)
         plt.title('Latitude Density Estimation')
+        if not(savename is None):
+            plt.savefig(savename)
+        plt.show()
+
+
+
+    def plot_density_latitude_real_data(self, percent=0.1, bandwidth=0.2, savename=None):
+        """ Plot the true and the estimated density of the cosinus of the angle between two consecutive states of the Markov chain on the Sphere """
+        L = np.real(self.updiag_gram) 
+        Labs = np.sort(np.abs(self.updiag_gram))[::-1]
+        size = percent * len(self.updiag_gram)
+        normalize = Labs[int(size)]
+        L = L[int(size):] / normalize
+        L = np.array(list(map(lambda x : min(max(-1,x),x),L))).reshape(-1,1)
+        from sklearn.neighbors import KernelDensity
+        kde = KernelDensity(kernel='linear', bandwidth=bandwidth).fit(L.reshape(-1,1))
+        x = np.linspace(-1,1,100)
+        log_dens = kde.score_samples(x.reshape(-1,1))
+        plt.plot(x, np.exp(log_dens)/sum(np.exp(log_dens)))
+        if not(savename is None):
+            plt.savefig(savename)
+        plt.show()
