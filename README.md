@@ -1,4 +1,4 @@
-> 📋Markovian Random Geometric Graph
+﻿> 📋Markovian Random Geometric Graph
 
 # Markov Random Geometric Graph (MRGG):
 
@@ -13,6 +13,7 @@ To install requirements:
 pip install -r requirements.txt
 ```
 
+## In the Notebook 'Experiments.ipynb', we can find the code to reproduce all our results provided in the paper.
 
 ## How to build a graph from simulated data
 
