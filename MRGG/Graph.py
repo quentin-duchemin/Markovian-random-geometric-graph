@@ -20,7 +20,7 @@ class Graph(Sampling, Envelope, Results):
             self.A = adjacency_matrix
 
         if nbeigvals is None:
-            eig, vec = np.linalg.eig(self.A / (self.n * self.sparsity))
+            eig, vec = np.linalg.eigh(self.A / (self.n * self.sparsity))
         else:
             eig, vec = sc.sparse.linalg.eigsh(self.A / (self.n * self.sparsity), k=nbeigvals)
 
@@ -41,6 +41,8 @@ class Graph(Sampling, Envelope, Results):
         for i in range(self.n):
             self.Theta[i,i] = 0
         uniform = np.random.rand(self.n, self.n)
+        uniform = np.triu(uniform)
+        uniform = (uniform + uniform.T)
         self.A = 1*(uniform<self.Theta)
 
     def show_graph_with_labels(self, adjacency_matrix):
