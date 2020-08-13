@@ -192,7 +192,7 @@ class EstimatorEnvelope(Parameters):
         for the clustering returns by the SCCHEi algorithm """
         self.compute_dimensions_sphere()
         L = len(self.dimensions)
-        if listeR is None:
+        if listeR is None or np.max(listeR)>L-1:
             listeR = [i for i in range(1,L)]
         if listekappa is None:
             listekappa = np.logspace(-4,0,1000)

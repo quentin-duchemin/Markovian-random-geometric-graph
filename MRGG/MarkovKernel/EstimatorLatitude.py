@@ -27,10 +27,11 @@ class EstimatorLatitude(Parameters, Kernels):
         gap = np.min(max_eigs)
         return gap
 
-    def latent_distance_estimation(self, eigenvalues, vec):
+    def latent_distance_estimation(self, eigenvalues, vec, GRAM=False):
         """ Algorithm HEiC with estimation of the Gram matrix of the latent points """
         eig = np.copy(eigenvalues)
         eig = np.real(eig)
+
         dec_order = np.argsort(eig)[::-1]
         dec_eigs = eig[dec_order]
         gap = self.compute_gap(dec_eigs, 0)
@@ -42,7 +43,8 @@ class EstimatorLatitude(Parameters, Kernels):
               best_ind_eig = i
         self.best_ind_eig = best_ind_eig
         V = vec[:,dec_order[best_ind_eig:best_ind_eig+self.d]]
-        # self.gram = np.real((1/self.d) * np.dot(V,V.T))
+        if GRAM:
+            self.gram = np.real((self.n/self.d) * np.dot(V,V.T))
         # self.updiag_gram = self.n*np.array([self.gram[i,i+1] for i in range(self.gram.shape[0]-1)])
         self.updiag_gram = (self.n /self.d) * np.array([np.dot(V[i,:],V[i+1,:]) for i in range(V.shape[0]-1)])
 
@@ -53,9 +55,10 @@ class EstimatorLatitude(Parameters, Kernels):
             pass
 
 
-    def latitude_estimator(self, x):
+    def latitude_estimator(self, x, h=None):
         """ Performs a kernel density estimation of the latitude function """
-        h = (1/self.n)**(1/3)
+        if h is None:
+            h = (1/self.n)**(1/3)
         return sum(list(map(lambda u:self.gaussian(u)/(self.n*h), (self.updiag_gram - x)/h)))
 
     def check_gram_estimation(self):
