@@ -9,12 +9,12 @@ from .Results import Results
 
 class Graph(Sampling, Envelope, Results):
     """ Main class building the graph """
-    def __init__(self, nb_nodes, dimension, sampling_type = 'uniform', latitude = 'default', envelope = 'heaviside', sparsity = 1, adjacency_matrix = None, nbeigvals = None, eig = None, vec = None):
-        Sampling.__init__(self, nb_nodes, dimension, sampling_type, latitude = latitude)
+    def __init__(self, nb_nodes, dimension, sampling_type = 'uniform', latitude = 'default', envelope = 'heaviside', sparsity = 1, epsilon=1e-2, adjacency_matrix = None, nbeigvals = None, eig = None, vec = None, rlim = 0.9, dic_params_functions={}):
+        Sampling.__init__(self, nb_nodes, dimension, sampling_type, latitude = latitude, epsilon=epsilon, rlim=rlim)
         Envelope.__init__(self, nb_nodes, dimension, sampling_type, envelope = envelope)
         Results.__init__(self, nb_nodes, dimension, sampling_type)
         self.sparsity = sparsity
-
+        self.dicparas = dic_params_functions
         if eig is None:
             if adjacency_matrix is None:
                 self.adjacency()

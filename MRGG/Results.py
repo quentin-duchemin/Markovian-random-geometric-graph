@@ -68,6 +68,30 @@ class Results(Parameters):
         true_eigenvalues = self.compute_eigenvalues(mode='latitude')
         esti_eigenvalues = self.compute_eigenvalues(mode='estimation_latitude')
         return self.delta2_metric(esti_eigenvalues, true_eigenvalues)
+    
+    def L2_error_estimation_envelope(self):
+        """ L2 error between the true and the estimated envelope """
+        x = np.linspace(-1,1,100)
+        self.esti = [self.estimation_envelope(xi) for xi in x]
+        self.esti = list(map(lambda x:max(0,x),self.esti))
+        self.esti = list(map(lambda x:min(1,x),self.esti))
+        self.true = [self.compute_envelope(xi) for xi in x]
+        L2_error = 0
+        for i, xele in enumerate(x):
+            L2_error += np.sqrt(1-xele**2)**(self.d-3) * (self.esti[i]-self.true[i])**2 * (2/100)
+        return L2_error
+    
+    def L2_error_estimation_latitude(self):
+        """ L2 error between the true and the estimated latitude """
+        x = np.linspace(-0.9,0.9,100)
+        esti = list(map(self.latitude_estimator, x))
+        true = np.array(list(map(self.density_latitude, x)))
+        esti = esti/sum(esti)
+        true = true/sum(true)
+        L2_error = 0
+        for i, xele in enumerate(x):
+            L2_error += np.sqrt(1-xele**2)**(self.d-3) * (self.esti[i]-self.true[i])**2 * (2*0.9/100)
+        return L2_error
 
     def error_gram_matrix(self):
         """ Frobenius error between the true and the estimated gram matrix """

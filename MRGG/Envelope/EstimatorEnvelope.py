@@ -193,7 +193,7 @@ class EstimatorEnvelope(Parameters):
         self.compute_dimensions_sphere()
         L = len(self.dimensions)
         if listeR is None or np.max(listeR)>L-1:
-            listeR = [i for i in range(1,L)]
+            listeR = [i for i in range(1,L-1)]
         if listekappa is None:
             listekappa = np.logspace(-4,0,1000)
         listeI = []
@@ -225,6 +225,7 @@ class EstimatorEnvelope(Parameters):
             if crit > nextcrit:
                 self.spectrumenv = listeSpectra[i]
                 crit = nextcrit
+                self.adaptiveR = R
         if figure:
           plt.plot(np.log10(listekappa), D_kappa)
           plt.xlabel('$\log_{10}$ $\kappa$', fontsize=16)
@@ -244,9 +245,10 @@ class EstimatorEnvelope(Parameters):
         size2clust = {len(clust):clust for clust in clustering[1]}
         self.spectrumenv = [ np.real(np.mean(self.dec_eigs[size2clust[int(d)]])) for d in self.dimensions ]
 
-    def plot_estimation_envelope(self,True_envelope=True, savename=None):
+    def plot_estimation_envelope(self,True_envelope=True, savename=None, display=True):
         """ Plots the true and the estimated envelope functions """
         x = np.linspace(-1,1,100)
+        fig=plt.figure()
         self.esti = [self.estimation_envelope(xi) for xi in x]
         self.esti = list(map(lambda x:max(0,x),self.esti))
         self.esti = list(map(lambda x:min(1,x),self.esti))
@@ -256,9 +258,11 @@ class EstimatorEnvelope(Parameters):
           plt.plot(x, self.true, label='True envelope', linestyle='--')
         plt.legend(fontsize=13)
         if not(savename is None):
-            plt.savefig(savename)
-        plt.show()
-
+            plt.savefig(savename, dpi=250)
+        if display:
+            plt.show()
+        else:
+            plt.close(fig)
 
     def plot_estimation_envelope_real_data(self, savename=None):
         x = np.linspace(-1,1,100)
@@ -291,9 +295,10 @@ class EstimatorEnvelope(Parameters):
         plt.show()
 
 
-    def plot_adjacency_eigs_vs_SCCHEi_clusters(self, Rmax):
-        """ Represents the eiganvalues of the adjacency matrix and the estimated eiganvalues of the envelope function with multiplicity """
+    def plot_adjacency_eigs_vs_SCCHEi_clusters(self, Rmax, savename=None, display=True):
+        """ Represents the eiganvalues of the adjacency matrix and the estimated eigenvalues of the envelope function with multiplicity """
         self.compute_dimensions_sphere(R=Rmax)  
+        fig=plt.figure()
         maxindUSVT = min(sum(self.dimensions),self.n-1)
         clusters = self.hierarchical_clustering(self.dec_eigs[:maxindUSVT])
         fig = plt.figure()
@@ -308,8 +313,13 @@ class EstimatorEnvelope(Parameters):
         ax1.scatter([i for i in range(len(means))], means, s=20, c='red', marker = '+', label='Clusters built by SCCHEi')
         ax1.set_xlabel('Indexes eigenvalues envelope',fontsize=14)
         plt.legend(fontsize=14)
-        plt.show()
-
+        if savename is not None:
+            plt.savefig(savename, dpi=250)
+        if display:
+            plt.show()
+        else:
+            plt.close(fig)
+            
     def plot_eigenvalues_clusters_labeled(self, R, thresholdmin=0, thresholdmax = 100, see_eigs_set_to_0 = False):
         """ Plots the eigenvalues of the adjacency matrix with colors corresponding to the clusters built by SCCHEi with resolution R """
         self.compute_dimensions_sphere(R=R)  

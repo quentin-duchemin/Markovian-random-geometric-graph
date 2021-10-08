@@ -4,9 +4,10 @@ from .EstimatorEnvelope import EstimatorEnvelope
 
 class Envelope(EstimatorEnvelope):
     """ Class containing all the work related to the envelope function """
-    def __init__(self, nb_nodes, dimension, sampling_type, envelope = 'default'):
+    def __init__(self, nb_nodes, dimension, sampling_type, envelope = 'default', **kwargs):
         EstimatorEnvelope.__init__(self, nb_nodes, dimension, sampling_type)
         self.envelope = envelope
+        
 
     def function_gegenbauer(self, t, spectrum):
         """ Returns the value at t of the function with a decomposition 'spectrum' in the gegenbauer basis """
@@ -51,9 +52,14 @@ class Envelope(EstimatorEnvelope):
           return 0
 
     def sinus_envelope(self, t):
-        return 0.5 + 0.5 *np.sin(np.pi*t/2)
+        return 0.5 + 0.5 * np.sin(self.dicparas['scale_sinus']*np.pi*t/2)
+    
+    
+    def rayleigh(self, t, **kwargs):
+        
+        return np.exp( - self.dicparas['xi'] * (2*(1-t)/self.dicparas['r']) ** self.dicparas['eta'])
 
-    def compute_envelope(self, t):
+    def compute_envelope(self, t, **kwargs):
         if self.envelope == 'indicator':
             return self.indicator_envelope(t)
         elif self.envelope == 'linear':
@@ -70,3 +76,5 @@ class Envelope(EstimatorEnvelope):
             return self.sinus_envelope(t)
         elif self.envelope == 'polynomial':
             return (1/3 + (35*t**4-30*t**2+ 3) / 12)
+        elif self.envelope == 'rayleigh':
+            return self.rayleigh(t)

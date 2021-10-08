@@ -71,19 +71,22 @@ class EstimatorLatitude(Parameters, Kernels):
         sc = plt.imshow(img)
         plt.colorbar(sc)
 
-    def plot_densities_latitude(self, savename=None):
+    def plot_densities_latitude(self, h=None, savename=None, display=True):
         """ Plot the true and the estimated density of the cosinus of the angle between two consecutive states of the Markov chain on the Sphere """
         x = np.linspace(-0.9,0.9,100)
-        esti = list(map(self.latitude_estimator, x))
+        fig=plt.figure()
+        esti = list(map(lambda a: self.latitude_estimator(a, h=h), x))
         true = np.array(list(map(self.density_latitude, x)))
-        plt.plot(x, esti/sum(esti), label='Estimation')
-        plt.plot(x, true/sum(true), label='True latitudes',linestyle='--')
+        plt.plot(x, esti/sum(esti), label='Estimated latitude')
+        plt.plot(x, true/sum(true), label='True latitude',linestyle='--')
         plt.legend(fontsize=13)
-        plt.title('Latitude Density Estimation')
+        #plt.title('Latitude Density Estimation')
         if not(savename is None):
-            plt.savefig(savename)
-        plt.show()
-
+            plt.savefig(savename, dpi=250)
+        if display:
+            plt.show()
+        else:
+            plt.close(fig)
 
 
     def plot_density_latitude_real_data(self, percent=0.1, bandwidth=0.2, savename=None):

@@ -5,13 +5,12 @@ from .EstimatorLatitude import EstimatorLatitude
 
 class Latitude(EstimatorLatitude):
     """ Class containing all the work related to the latitude function """
-    def __init__(self, nb_nodes, dimension, sampling_type, latitude = 'default'):
+    def __init__(self, nb_nodes, dimension, sampling_type, latitude = 'default', rlim=0.9):
         EstimatorLatitude.__init__(self, nb_nodes, dimension, sampling_type)
         self.latitude = latitude
-        if self.latitude == 'beta':
-          self.alpha = 5
-          self.beta = 1
-
+        if self.latitude == 'heaviside':
+            self.rlim = rlim
+            
     def defaut_latitude(self):
         return np.random.uniform(0,np.pi)
 
@@ -41,13 +40,12 @@ class Latitude(EstimatorLatitude):
               return 1-np.random.beta(2,5)
             else:
               return -1+np.random.beta(2,5)
-        elif self.latitude == 'mixture':
-            if np.random.uniform(0,1)<0.5:
-              return 1-np.random.beta(2,5)
-            else:
-              return -1+np.random.beta(2,5)
         elif self.latitude == 'concentrated':
             return 2*np.random.beta(5,1)-1
+        elif self.latitude == 'heaviside':
+            return (np.random.rand()*(1-self.rlim)+self.rlim)
+        elif self.latitude == 'beta':
+            return 1-2*np.random.beta(self.dicparas['alpha'], self.dicparas['beta'])
         else:
             return np.cos(self.compute_arccos_latitude())
 
@@ -57,7 +55,7 @@ class Latitude(EstimatorLatitude):
         if self.latitude == 'uniform-angle':
           return (1 /(np.pi* np.sqrt(1-cosangle**2)))
         elif self.latitude == 'beta':
-          return (stats.beta.pdf(np.arccos(cosangle)/np.pi, self.alpha, self.beta)*(1/(np.pi*np.sqrt(1-cosangle**2))))
+          return (stats.beta.pdf((1-cosangle)/2, self.dicparas['alpha'], self.dicparas['beta'])/2)
         elif self.latitude == 'log-normal':
           return (stats.lognorm.pdf(np.arccos(cosangle)/np.pi, 1)*(1/(np.pi*np.sqrt(1-cosangle**2))))
         elif self.latitude == 'uniform':
@@ -72,3 +70,8 @@ class Latitude(EstimatorLatitude):
               return 0.5*stats.beta.pdf(1-cosangle,2,5)
         elif self.latitude == 'concentrated':
             return stats.beta.pdf((cosangle+1)/2,5,1)
+        elif self.latitude == 'heaviside':
+            if cosangle < self.rlim:
+                return 0
+            else:
+                return np.sqrt(1-cosangle**2)**(self.d-3) #np.sqrt(1-cosangle**2)**(self.d-3)
